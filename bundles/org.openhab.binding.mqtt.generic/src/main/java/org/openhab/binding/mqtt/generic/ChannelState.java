@@ -366,17 +366,20 @@ public class ChannelState implements MqttMessageSubscriber {
             }
         }
 
-        String commandString;
+        String commandString = null;
 
         // Formatter: Applied before the channel state value is published to the MQTT broker.
-        if (config.formatBeforePublish.length() > 0) {
-            try {
-                commandString = mqttCommandValue.getMQTTpublishValue(config.formatBeforePublish);
-            } catch (IllegalFormatException e) {
-                logger.debug("Format pattern incorrect for {}", channelUID, e);
-                commandString = mqttCommandValue.getMQTTpublishValue(null);
+        for (String format : new String[] { config.formatBeforePublish, config.formatBeforePublishAlt }) {
+            if ((null != format) && format.length() > 0) {
+                try {
+                    commandString = mqttCommandValue.getMQTTpublishValue(format);
+                    break;
+                } catch (IllegalFormatException e) {
+                    logger.debug("Format pattern incorrect for {}", channelUID, e);
+                }
             }
-        } else {
+        }
+        if (null == commandString) {
             commandString = mqttCommandValue.getMQTTpublishValue(null);
         }
 

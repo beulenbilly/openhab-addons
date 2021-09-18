@@ -54,6 +54,18 @@
 			<advanced>true</advanced>
 			<default>%s</default>
 		</parameter>
+		<parameter name="formatBeforePublishAlt" type="text" groupName="transformations">
+			<label>Alternativ Outgoing Value Format</label>
+			<description><![CDATA[
+            Format a value before it is published to the MQTT broker.
+            The default is to just pass the channel/item state.
+
+            If you want to apply a prefix, say "MYCOLOR,", you would use "MYCOLOR,%s".
+            If you want to adjust the precision of a number to for example 4 digits, you would use "%.4f".
+            ]]></description>
+			<advanced>true</advanced>
+			<default>%s</default>
+		</parameter>
 		<parameter name="qos" type="integer" min="0" max="2" required="false">
 			<label>QoS</label>
 			<description>MQTT QoS of this channel (0, 1, 2). Default is QoS of the broker connection.</description>

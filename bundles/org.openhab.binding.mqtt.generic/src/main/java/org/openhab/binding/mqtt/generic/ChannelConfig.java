@@ -46,6 +46,7 @@ public class ChannelConfig {
     public String transformationPattern = "";
     public String transformationPatternOut = "";
     public String formatBeforePublish = "%s";
+    public String formatBeforePublishAlt = "";
     public String allowedStates = "";
 
     public @Nullable BigDecimal min;

@@ -117,15 +117,17 @@ public class RollershutterValue extends Value {
         final String upString = this.upString;
         final String downString = this.downString;
         if (this.nextIsStop) {
+            String converted = null != pattern ? String.format(pattern, stopString) : stopString;
             this.nextIsStop = false;
-            return stopString;
+            return converted;
         } else if (state instanceof PercentType) {
             if (state.equals(PercentType.HUNDRED) && downString != null) {
-                return downString;
+                return null != pattern ? String.format(pattern, downString) : downString;
             } else if (state.equals(PercentType.ZERO) && upString != null) {
-                return upString;
+                return null != pattern ? String.format(pattern, upString) : upString;
             } else {
-                return String.valueOf(((PercentType) state).intValue());
+                return null != pattern ? ((PercentType) state).format(pattern)
+                        : String.valueOf(((PercentType) state).intValue());
             }
         } else {
             return "UNDEF";
