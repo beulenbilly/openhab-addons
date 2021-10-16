@@ -209,11 +209,24 @@ public class DateTimeUtils {
      */
     public static Calendar applyConfig(Calendar cal, AstroChannelConfig config) {
         Calendar cCal = cal;
-        if (config.offset != 0) {
+        // apply offset if possible
+        if (cCal != null && config.offset != 0) {
             Calendar cOffset = Calendar.getInstance();
             cOffset.setTime(cCal.getTime());
             cOffset.add(Calendar.MINUTE, config.offset);
             cCal = cOffset;
+        }
+
+        if (null == cCal) {
+            if (getMinutesFromTime(config.earliest) != 0) {
+                return adjustTime(Calendar.getInstance(), getMinutesFromTime(config.earliest));
+            } else {
+                if (getMinutesFromTime(config.latest) != 0) {
+                    return adjustTime(Calendar.getInstance(), getMinutesFromTime(config.latest));
+                } else {
+                    return null;
+                }
+            }
         }
 
         Calendar cEarliest = adjustTime(cCal, getMinutesFromTime(config.earliest));
@@ -228,7 +241,7 @@ public class DateTimeUtils {
         return cCal;
     }
 
-    private static Calendar adjustTime(Calendar cal, int minutes) {
+    protected static Calendar adjustTime(Calendar cal, int minutes) {
         if (minutes > 0) {
             Calendar cTime = truncateToMidnight(cal);
             cTime.add(Calendar.MINUTE, minutes);

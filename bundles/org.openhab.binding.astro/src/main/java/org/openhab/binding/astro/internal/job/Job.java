@@ -18,6 +18,7 @@ import static org.openhab.binding.astro.internal.AstroBindingConstants.*;
 import static org.openhab.binding.astro.internal.util.DateTimeUtils.*;
 
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
@@ -115,25 +116,27 @@ public interface Job extends SchedulerRunnable, Runnable {
      * @param channelId the channel ID
      */
     public static void scheduleRange(String thingUID, AstroThingHandler astroHandler, Range range, String channelId) {
-        Calendar start = range.getStart();
-        Calendar end = range.getEnd();
-
-        // depending on the location you might not have a valid range for day/night, so skip the events:
-        if (start == null || end == null) {
-            return;
-        }
-
         final Channel channel = astroHandler.getThing().getChannel(channelId);
         if (channel == null) {
             LOGGER.warn("Cannot find channel '{}' for thing '{}'.", channelId, astroHandler.getThing().getUID());
             return;
         }
-        AstroChannelConfig config = channel.getConfiguration().as(AstroChannelConfig.class);
-        Calendar configStart = truncateToSecond(applyConfig(start, config));
-        Calendar configEnd = truncateToSecond(applyConfig(end, config));
 
-        scheduleEvent(thingUID, astroHandler, configStart, EVENT_START, channelId, true);
-        scheduleEvent(thingUID, astroHandler, configEnd, EVENT_END, channelId, true);
+        AstroChannelConfig config = channel.getConfiguration().as(AstroChannelConfig.class);
+        Calendar configStart = applyConfig(range.getStart(), config);
+        Calendar configEnd = applyConfig(range.getEnd(), config);
+
+        // depending on the location you might not have a valid range for day/night, so skip the events:
+        if (configStart == null || configEnd == null) {
+            return;
+        }
+
+        if (configStart.after(configEnd)) {
+            scheduleEvent(thingUID, astroHandler, configEnd, Arrays.asList(EVENT_START, EVENT_END), channelId, true);
+        } else {
+            scheduleEvent(thingUID, astroHandler, configStart, EVENT_START, channelId, true);
+            scheduleEvent(thingUID, astroHandler, configEnd, EVENT_END, channelId, true);
+        }
     }
 
     /**

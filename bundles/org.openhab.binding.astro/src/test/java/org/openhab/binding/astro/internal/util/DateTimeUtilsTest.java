@@ -17,10 +17,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.openhab.binding.astro.internal.calc.SeasonCalc;
+import org.openhab.binding.astro.internal.config.AstroChannelConfig;
 import org.openhab.binding.astro.internal.model.Season;
 
 /**
@@ -74,6 +79,31 @@ public class DateTimeUtilsTest {
         target2.setTimeZone(TIME_ZONE);
         target2.set(Calendar.MILLISECOND, 999);
         assertEquals(endOfDay, target2);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testApplyConfig(Calendar cal, AstroChannelConfig config, Calendar exprectedResult) {
+        assertEquals(exprectedResult, DateTimeUtils.applyConfig(cal, config));
+    }
+
+    static Stream<Arguments> testApplyConfig() {
+        return Stream.of(
+                Arguments.arguments(newCalendar(2021, 9, 30, 20, 0, TimeZone.getDefault()),
+                        newAstroChannelConfig(0, null), newCalendar(2021, 9, 30, 20, 0, TimeZone.getDefault())),
+                Arguments.arguments(newCalendar(2021, 9, 30, 20, 30, TimeZone.getDefault()),
+                        newAstroChannelConfig(-15, null), newCalendar(2021, 9, 30, 20, 15, TimeZone.getDefault())),
+                Arguments.arguments(newCalendar(2021, 9, 30, 20, 30, TimeZone.getDefault()),
+                        newAstroChannelConfig(-15, "20:10"), newCalendar(2021, 9, 30, 20, 10, TimeZone.getDefault())),
+                Arguments.arguments(null, newAstroChannelConfig(-15, "20:30"),
+                        DateTimeUtils.adjustTime(Calendar.getInstance(), 20 * 60 + 30)));
+    }
+
+    static AstroChannelConfig newAstroChannelConfig(int offset, String latest) {
+        AstroChannelConfig config = new AstroChannelConfig();
+        config.latest = latest;
+        config.offset = offset;
+        return config;
     }
 
     private void assertNextSeason(Calendar expectedSeason, Calendar date, Season season) {
